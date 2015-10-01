@@ -1,0 +1,17 @@
+passing_yds
+passing_tds
+passing_int
+passing_twoptm
+rushing_yds
+rushing_tds
+rushing_att
+rushing_twoptm
+receiving_yds
+receiving_tds
+receiving_rec
+receiving_twoptm
+fumbles_tot
+kicking_fgm
+kicking_fgmissed
+kicking_xpmade
+kicking_xpmissed

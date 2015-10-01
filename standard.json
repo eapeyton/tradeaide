@@ -1,0 +1,19 @@
+{
+    "passing_yds": 0.04,
+    "passing_tds": 4,
+    "passing_int": -2,
+    "passing_twoptm": 2,
+    "rushing_yds": 0.1,
+    "rushing_tds": 6,
+    "rushing_att": 0.0,
+    "rushing_twoptm": 2,
+    "receiving_yds": 0.1,
+    "receiving_tds": 6,
+    "receiving_rec": 0,
+    "receiving_twoptm": 2,
+    "fumbles_tot": -2,
+    "kicking_fgm": 3,
+    "kicking_fgmissed": -1,
+    "kicking_xpmade": 1,
+    "kicking_xpmissed": -1
+}
