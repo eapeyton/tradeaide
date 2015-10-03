@@ -1,3 +1,4 @@
+import os
 import pprint
 import numpy
 import logging
@@ -92,6 +93,13 @@ class Calculator:
         return [(s[1], s[0]) for s in sort]
 
 
+def get_resource(path):
+    resource = ''
+    with open(os.path.join('resources', path), 'r') as f:
+        resource = f.read()
+    return resource
+
+
 def average_lists(*lists):
     logging.debug('')
     logging.debug('----------------------------------------------------------------------')
@@ -114,46 +122,43 @@ def average_lists(*lists):
         avgs.append(round(avg,2))
     return avgs
 
-def read_scoring_file(filePath):
-    with open(filePath) as f:
-        scoring = json.load(f)
+
+def read_scoring_file(file_contents):
+    scoring = json.loads(file_contents)
     for attribute in get_attributes():
         if not attribute in scoring:
-            raise NotEnoughRulesError('Rule for {} not found in {}'.format(attribute, filePath))
+            raise NotEnoughRulesError('Rule for {} not found in {}'.format(attribute,scoring))
+    return scoring
+
+
+def extend_scoring_file(original, extension):
+    scoring = read_scoring_file(original)
+    ext = json.loads(extension)
+    for attribute,value in ext.iteritems():
+        scoring[attribute] = value
     return scoring
 
 
 def get_attributes():
     attributes = []
-    with open('attributes.txt', 'r') as f:
-        for attribute in f.readlines():
-            attributes.append(attribute.rstrip())
+    for attribute in get_resource('attributes.txt').splitlines():
+        attributes.append(attribute.rstrip())
     return attributes
 
 class Guesser:
     def __init__(self):
-        with open('unk_rbs.json') as f:
-            self.rbs = json.load(f)
-        with open('unk_wrs.json') as f:
-            self.wrs = json.load(f)
+        self.positions = json.loads(get_resource('unk.json'))
 
     def get_position(self, name):
-        rb_pos = self.rbs.get(name)
-        wr_pos = self.wrs.get(name)
-        if rb_pos and wr_pos:
-            if rb_pos == wr_pos:
-                return rb_pos
-            else:
-                raise Exception('Differing manual positions for {}'.format(name))
-        if rb_pos:
-            return rb_pos
-        if wr_pos:
-            return wr_pos
+        pos = self.positions.get(name)
+        if pos:
+            return pos
         raise Exception('No manual position found for {}'.format(name))
 
 
 def suffix(d):
     return 'th' if 11<=d<=13 else {1:'st',2:'nd',3:'rd'}.get(d%10, 'th')
+
 
 
 # TODO: Probably need a fake database to really test this function
@@ -165,7 +170,7 @@ def guess_points(player_name, position):
 
     db = PlayerDB()
     year_scores = []
-    calc = Calculator(read_scoring_file('standard.json'))
+    calc = Calculator(read_scoring_file(get_resource('standard.json')))
     for year in range(2009, 2015):
         year_scores.append(calc.sort_position(db.query_players_by_year(year), position))
     avg_scores = average_lists(*year_scores)
@@ -176,7 +181,6 @@ def guess_points(player_name, position):
 
     # TODO: What do we divide this number by? Not all players play 16 games
     return avg_score / 16.0
-
 
 def get_args():
     parser = argparse.ArgumentParser(description='Guess the expected number of points per game that a player will produce.')

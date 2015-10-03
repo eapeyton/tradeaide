@@ -1,31 +1,20 @@
 import nfldb
+import os
 import unittest
 import mock
 import collections
 import Trade
 import json
 
-STD = Trade.read_scoring_file('standard.json')
-PURE = Trade.read_scoring_file('pure.json')
+def TestData(path):
+    data = ''
+    with open(os.path.join('testdata', path), 'r') as f:
+        data = f.read()
+    return data
 
-"""
-    def testMe(self):
-        return
-        db = nfldb.connect()
-        rb_lists = []
-        calc = Trade.Calculator(STD)
-        for year in range(2009,2015):
-            q = nfldb.Query(db)
-            q.game(season_year=year, season_type='Regular')
-            rushers = q.sort('rushing_yds').limit(100).as_aggregate()
-            receivers = q.sort('receiving_yds').limit(100).as_aggregate()
-            passers = q.sort('passing_yds').limit(35).as_aggregate()
-            players = Trade.aggpps_to_players(rushers + receivers + passers)
-            rb_lists.append(calc.sort_position(players, 'RB'))
+STD = Trade.read_scoring_file(TestData('standard.json'))
+PURE = Trade.read_scoring_file(TestData('pure.json'))
 
-        avgs = Trade.average_lists(*rb_lists)
-        print avgs[:5]
-"""
 class PlayerDBTests(unittest.TestCase):
     def setUp(self):
         self.test_player1 = createQB(363, 1, 2, rushing_yds=3, rushing_att=1)
@@ -132,16 +121,23 @@ class TradeTests(unittest.TestCase):
                        'receiving_tds': 6,
                        'receiving_rec': 0,
                        'receiving_twoptm': 2,
+                       "puntret_tds": 6,
+                       "kickret_tds": 6,
                        'fumbles_tot': -2,
                        'kicking_fgm': 3,
                        'kicking_fgmissed': -1,
                        'kicking_xpmade': 1,
                        'kicking_xpmissed': -1}
-        scoring = Trade.read_scoring_file('standard.json')
+        scoring = STD
+        self.assertEqual(scoring, exp_scoring)
+
+        exp_scoring['receiving_rec'] = 0.5
+        scoring = Trade.extend_scoring_file(TestData('standard.json'), TestData('halfppr_ext.json'))
         self.assertEqual(scoring, exp_scoring)
 
         with self.assertRaises(Trade.NotEnoughRulesError):
-            Trade.read_scoring_file('notenoughrules.json')
+            Trade.read_scoring_file(TestData('notenoughrules.json'))
+
 
     def testSuffix(self):
         self.assertEqual(Trade.suffix(1), 'st')
@@ -187,6 +183,7 @@ class TradeTests(unittest.TestCase):
         players = Trade.aggpps_to_players(rushers + receivers + passers)
         for rec,yds in calc.sort_position_more(players, 'TE'):
             print "{} {}".format(rec,yds)
+
 
 def createPP(position):
     aggpp = mock.MagicMock()

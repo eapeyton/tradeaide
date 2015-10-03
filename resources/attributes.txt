@@ -11,6 +11,8 @@ receiving_tds
 receiving_rec
 receiving_twoptm
 fumbles_tot
+puntret_tds
+kickret_tds
 kicking_fgm
 kicking_fgmissed
 kicking_xpmade
