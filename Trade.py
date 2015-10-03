@@ -7,7 +7,7 @@ import nfldb
 import argparse
 import Ranking
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 class NotEnoughRulesError(Exception):
     pass
@@ -112,8 +112,8 @@ def average_lists(*lists):
     for i in range(short):
         tot = 0.0
         values = [lst[i] for lst in lists]
-        #logging.debug(row_format.format(*values))
-        logging.debug(numpy.median(numpy.array(values)))
+        logging.debug(row_format.format(*values))
+        #logging.debug(numpy.median(numpy.array(values)))
         if len(values) > 2:
             tot = sum(values) - min(values) - max(values)
             avg = tot / float(len(lists) - 2)

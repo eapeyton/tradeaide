@@ -1,19 +1,38 @@
+import Trade
+import logging
+import os
+import json
+
+
+def write_scores(scores, file_name):
+    with open(os.path.join('history', file_name), 'w') as f:
+        json.dump(scores, f, indent=2)
+
 def write_json():
-    url = Ranking.create_standard_link(position)
-    rankings = Ranking.download_rankings(url)
-    rank = rankings.index(player_name)
-    logging.info('{}\'s rest of season ranking is {}.'.format(player_name, rank+1))
+    std = Trade.read_scoring_file(Trade.get_resource('standard.json'))
+    hppr = Trade.extend_scoring_file(Trade.get_resource('standard.json'),
+                                     Trade.get_resource('halfppr.json'))
+    ppr = Trade.extend_scoring_file(Trade.get_resource('standard.json'),
+                                    Trade.get_resource('ppr.json'))
 
-    db = PlayerDB()
-    year_scores = []
-    calc = Calculator(read_scoring_file('standard.json'))
-    for year in range(2009, 2015):
-        year_scores.append(calc.sort_position(db.query_players_by_year(year), position))
-    avg_scores = average_lists(*year_scores)
-    avg_score = avg_scores[rank]
-    logging.info('On average (from 2009-2015) players that finished with the {}{} '
-                 'most points scored {} points in a year, or {}/game.'
-                 .format(rank+1, suffix(rank+1), avg_score, avg_score/16.0))
+    year_players = []
+    db = Trade.PlayerDB()
+    years_range = range(2009, 2015)
+    for year in years_range:
+        year_players.append(db.query_players_by_year(year))
 
-    # TODO: What do we divide this number by? Not all players play 16 games
-    return avg_score / 16.0
+    for scoring, name in [(std, 'standard'), (hppr, 'half_ppr'), (ppr, 'ppr')]:
+        calc = Trade.Calculator(scoring)
+        for position in ['QB', 'RB', 'WR', 'TE']:
+            year_scores = []
+            for players in year_players:
+                year_scores.append(calc.sort_position(players, position))
+            avg_scores = Trade.average_lists(*year_scores)
+            write_scores(avg_scores, '{}_{}_{}-{}.json'.format(name, 
+                                                               position,
+                                                               years_range[0],
+                                                               years_range[-1]))
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    write_json()
